@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Classification Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Image Classification Dashboard</h1>
+      <form id="uploadForm" enctype="multipart/form-data">
+        <label for="fileInput" class="fileLabel">Choose an image</label>
+        <input
+          type="file"
+          name="file"
+          id="fileInput"
+          accept=".jpg, .jpeg, .png"
+        />
+        <button type="button" onclick="uploadImage()">Upload Image</button>
+      </form>
+      <div id="progress" class="hidden">
+        <progress value="0" max="100"></progress>
+        <span id="progressText">Uploading...</span>
+      </div>
+      <div id="result" class="hidden">
+        <h2>Classification Result</h2>
+        <div id="imagePreview"></div>
+        <p id="resultText"></p>
+      </div>
+    </div>
+
+    <script>
+      function uploadImage() {
+        const fileInput = document.getElementById("fileInput");
+        const file = fileInput.files[0];
+
+        if (!file) {
+          alert("Please select an image file.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // Show progress indicator
+        const progressDiv = document.getElementById("progress");
+        progressDiv.classList.remove("hidden");
+
+        fetch("https://shawns-application-production.up.railway.app/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Hide progress indicator
+            progressDiv.classList.add("hidden");
+
+            // Show result
+            const resultDiv = document.getElementById("result");
+            resultDiv.classList.remove("hidden");
+
+            // Display image preview
+            const imagePreviewDiv = document.getElementById("imagePreview");
+            const image = new Image();
+            image.src = URL.createObjectURL(file);
+            image.width = 200; // Set desired width
+            imagePreviewDiv.innerHTML = "";
+            imagePreviewDiv.appendChild(image);
+
+            // Display result text
+            const resultText = document.getElementById("resultText");
+            resultText.innerText = `Classification result: ${data.result}`;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+
+            // Hide progress indicator
+            progressDiv.classList.add("hidden");
+
+            // Hide result
+            const resultDiv = document.getElementById("result");
+            resultDiv.classList.add("hidden");
+
+            // Show error message
+            alert(
+              "An error occurred during the upload and classification process."
+            );
+          });
+      }
+    </script>
+  </body>
+</html>
